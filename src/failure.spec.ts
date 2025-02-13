@@ -1,21 +1,6 @@
-import { Data, Effect, Layer, pipe, Exit, Array, Option } from "effect"
+import { Effect, Layer, pipe, Exit, Array, Option } from "effect"
 import { describe, expect, test } from "vitest"
-
-class User extends Data.Class<{
-	name: string
-}> {}
-
-export class DuplicateUser extends Data.TaggedClass("DuplicateUser")<{
-	name: string
-}> {}
-
-class UserRepository extends Effect.Tag("UserGateway")<
-	UserRepository,
-	{
-		list: Effect.Effect<User[]>
-		create: (user: User) => Effect.Effect<void, DuplicateUser>
-	}
->() {}
+import { UserRepository, DuplicateUser, User } from "./failure"
 
 describe(`Testing failure`, () => {
 	const user = new User({ name: "user_name" })
@@ -30,7 +15,7 @@ describe(`Testing failure`, () => {
 
 				expect(result).toStrictEqual<typeof result>([user])
 			}),
-			Effect.provide(LiveInMemoryUserGateway),
+			Effect.provide(LiveInMemoryUserRepository),
 			Effect.runPromise,
 		))
 
@@ -45,12 +30,12 @@ describe(`Testing failure`, () => {
 					Exit.fail(new DuplicateUser({ name: user.name })),
 				)
 			}),
-			Effect.provide(LiveInMemoryUserGateway),
+			Effect.provide(LiveInMemoryUserRepository),
 			Effect.runPromise,
 		))
 })
 
-const LiveInMemoryUserGateway = Layer.effect(
+const LiveInMemoryUserRepository = Layer.effect(
 	UserRepository,
 	Effect.sync(() => {
 		const users: User[] = []

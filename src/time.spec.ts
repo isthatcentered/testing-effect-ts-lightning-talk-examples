@@ -8,14 +8,7 @@ import {
 	Clock,
 } from "effect"
 import { describe, expect, test } from "vitest"
-
-class Freeze extends Effect.Tag("Freeze")<
-	Freeze,
-	{
-		start(params: { timeout: Duration.Duration }): Effect.Effect<void>
-		isFrozen: Effect.Effect<boolean>
-	}
->() {}
+import { Freeze } from "./time"
 
 describe(`Testing time`, () => {
 	const dependencies = Layer.mergeAll(
@@ -23,7 +16,7 @@ describe(`Testing time`, () => {
 		TestContext.TestContext,
 	)
 	const timeout = Duration.minutes(10)
-	
+
 	test(`Freeze is still active 1s before timeout`, () =>
 		pipe(
 			Effect.gen(function* () {

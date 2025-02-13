@@ -1,72 +1,14 @@
-import {
-	Brand,
-	Data,
-	Schema,
-	Effect,
-	Context,
-	Layer,
-	pipe,
-	Array,
-} from "effect"
+import { Effect, Context, Layer, pipe } from "effect"
 import { describe, expect, test } from "vitest"
-
-type EmailAddress = Brand.Branded<string, "EMAIL_ADDRES">
-const makeEmailAddress = Brand.nominal<EmailAddress>()
-
-class Mailable<A> extends Data.Class<{
-	subject: string
-	body: string
-	variables: Schema.Schema<A>
-}> {}
-
-class Email<A> extends Data.Class<{
-	mailable: Mailable<A>
-	recipient: EmailAddress
-	variables: A
-}> {}
-
-class Mailer extends Effect.Tag("Mailer")<
-	Mailer,
-	{ sendEmail(email: Email<any>): Effect.Effect<void> }
->() {}
-
-class User extends Data.Class<{
-	email: EmailAddress
-	hasSubscription: boolean
-}> {}
-
-class UserRepository extends Effect.Tag("UserGateway")<
+import {
+	sendBuySubscriptionEmail,
 	UserRepository,
-	{
-		list: Effect.Effect<User[]>
-		create: (user: User) => Effect.Effect<void>
-	}
->() {}
-
-const BuySubscriptionMailable = new Mailable({
-	subject: "Buy subscription",
-	body: "Pretty please",
-	variables: Schema.Void,
-})
-
-const sendBuySubscriptionEmail = pipe(
-	UserRepository.list,
-	Effect.flatMap(users =>
-		pipe(
-			users,
-			Array.filter(u => !u.hasSubscription),
-			Array.map(
-				u =>
-					new Email({
-						mailable: BuySubscriptionMailable,
-						recipient: u.email,
-						variables: undefined,
-					}),
-			),
-			Effect.forEach(email => Mailer.sendEmail(email)),
-		),
-	),
-)
+	User,
+	Mailer,
+	Email,
+	makeEmailAddress,
+	EmailAddress,
+} from "./shadow-services"
 
 describe(`Shadow services`, () => {
 	const subscribedUser = new User({
@@ -90,7 +32,9 @@ describe(`Shadow services`, () => {
 					true,
 				)
 			}),
-			Effect.provide(Layer.mergeAll(LiveInMemoryUserGateway, LiveTestMailer)),
+			Effect.provide(
+				Layer.mergeAll(LiveInMemoryUserRepository, LiveTestMailer),
+			),
 			Effect.runPromise,
 		))
 
@@ -103,7 +47,9 @@ describe(`Shadow services`, () => {
 
 				expect(yield* TestMailer.sentEmailTo(subscribedUser.email)).toBe(false)
 			}),
-			Effect.provide(Layer.mergeAll(LiveInMemoryUserGateway, LiveTestMailer)),
+			Effect.provide(
+				Layer.mergeAll(LiveInMemoryUserRepository, LiveTestMailer),
+			),
 			Effect.runPromise,
 		))
 })
@@ -135,7 +81,7 @@ const LiveTestMailer = Layer.unwrapEffect(
 		),
 	),
 )
-const LiveInMemoryUserGateway = Layer.effect(
+const LiveInMemoryUserRepository = Layer.effect(
 	UserRepository,
 	Effect.sync(() => {
 		const users: User[] = []
