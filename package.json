@@ -4,26 +4,20 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn ./src/bpm-backend/index.ts",
     "test": "vitest"
   },
   "keywords": [],
-  "author": "",
+  "author": "isthatcentered",
   "license": "ISC",
   "dependencies": {
-    "@effect/platform": "^0.72.1",
-    "@effect/platform-node": "^0.68.1",
-    "@effect/schema": "^0.75.5",
     "effect": "^3.12.1",
     "typescript": "^5.7.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
     "prettier": "^3.4.2",
-    "ts-node-dev": "^2.0.0",
     "vitest": "^2.1.8",
-    "@effect/vitest": "^0.16.1",
-    "vitest-when": "^0.5.0"
+    "@effect/vitest": "^0.16.1"
   },
   "prettier": {
     "arrowParens": "avoid",
